@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="CSS/checkout.css">
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <nav>
+        <div class="logo">Online Jewelry Store</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+            <li><a href="cart.html">Cart</a></li>
+        </ul>
+    </nav>
+    <div class="checkout">
+        <h2>Checkout</h2>
+        <p>Total: ₹<span id="checkout-total">0.00</span></p>
+    <form id="payment-form">
+        <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Enter your name" required>
+            
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            
+            <label for="address">Address</label>
+            <input type="text" id="address" name="address" placeholder="Enter your address" required>
+            
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" placeholder="Enter your city" required>
+            
+            <label for="postal-code">Postal Code</label>
+            <input type="text" id="postal-code" name="postal-code" placeholder="Enter your postal code" required>
+            
+            <label for="country">Country</label>
+            <input type="text" id="country" name="country" placeholder="Enter your country" required>
+        <h2>Enter Card Details</h2>
+        <!-- Container for Stripe Element -->
+        <div id="card-element"></div>
+        <!-- Used to display form errors -->
+        <div id="card-errors" role="alert"></div>
+        <button id="submit-button" type="submit">Pay Now</button>
+    </form>
+    </div>
+
+    <script>
+        // Retrieve cart data from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Calculate total price from cart data
+        let total = 0;
+        urlParams.forEach((value, key) => {
+            if (key === 'price') {
+                total += parseFloat(value);
+            }
+        });
+
+        // Display total price
+        document.getElementById('checkout-total').textContent = total.toFixed(2);
+
+        
+
+        // Set your publishable key
+        var stripe = Stripe('pk_test_51P1E0RSJ75CUpuIuITEEgfrX2EAYf84bFNMzG12lwULOUeZdxdHBShEP3don7yOiftA4CaVOEQkbZAhhGJU1llPa00BhRo9Ryp');
+
+        // Create an instance of the card Element
+        var card = stripe.elements().create('card');
+
+        // Mount the card Element into the container
+        card.mount('#card-element');
+
+        // Handle form submission
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    // Inform the user if there was an error
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server
+                    stripeTokenHandler(result.token);
+                }
+            });
+        }); 
+        function stripeTokenHandler(token) {
+                // Insert the token ID into the form so it gets submitted to the server
+                var form = document.getElementById('payment-form');
+                var hiddenInput = document.createElement('input');
+                hiddenInput.setAttribute('type', 'hidden');
+                hiddenInput.setAttribute('name', 'stripeToken');
+                hiddenInput.setAttribute('value', token.id);
+                form.appendChild(hiddenInput);
+
+                // Submit the form
+                form.submit();
+            }   </script>
+</body>
+</html>
